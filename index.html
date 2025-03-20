@@ -3,60 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SlowTalks - Présentation</title>
+    
+    <!-- Meta tags pour le SEO -->
+    <meta name="description" content="SlowTalks - Une plateforme pour échanger, découvrir et partager dans une atmosphère détendue.">
+    <meta name="keywords" content="SlowTalks, échanger, découvrir, partager, musique, communauté">
+    <meta name="author" content="Koksal">
+    
+    <!-- Meta tags pour les réseaux sociaux (Open Graph et Twitter) -->
+    <meta property="og:title" content="SlowTalks - Présentation">
+    <meta property="og:description" content="SlowTalks - Une plateforme pour échanger, découvrir et partager dans une atmosphère détendue.">
+    <meta property="og:image" content="https://slowtalks.derickexm.be/images/og-image.jpg">
+    <meta property="og:url" content="https://slowtalks.derickexm.be/">
+    <meta property="og:type" content="website">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SlowTalks - Présentation">
+    <meta name="twitter:description" content="SlowTalks - Une plateforme pour échanger, découvrir et partager dans une atmosphère détendue.">
+    <meta name="twitter:image" content="https://slowtalks.derickexm.be/images/og-image.jpg">
+    
+    <!-- Préchargement des ressources critiques -->
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" as="style">
+    
+    <!-- Liens vers les feuilles de style -->
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Titre de la page -->
+    <title>SlowTalks - Présentation</title>
+    
+    <!-- Microdonnées Schema.org -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "SlowTalks",
+        "url": "https://slowtalks.derickexm.be/",
+        "description": "Une plateforme pour échanger, découvrir et partager dans une atmosphère détendue.",
+        "author": {
+            "@type": "Person",
+            "name": "Koksal"
+        }
+    }
+    </script>
 </head>
 <body>
-    <header>
+    <!-- En-tête de la page -->
+    <header role="banner">
         <div class="container">
             <h1>Koksal</h1>
             <p>Prenez le temps d'échanger, de découvrir et de partager.</p>
-            <a href="#about" class="btn">Découvrir</a>
+            <a href="#about" class="btn" aria-label="Découvrir plus sur SlowTalks">Découvrir</a>
         </div>
     </header>
 
-    <section id="about">
-        <div class="container">
-            <h2>À propos de moi</h2>
-            <div class="about-content">
-                <p>Je m'appelle <strong>Koksal</strong>, j'ai 20 ans et je suis passionné par l'informatique. Je suis particulièrement fort en <strong>Python</strong> et j'adore créer des projets innovants. Actuellement étudiant en informatique, je consacre mon temps à développer des idées qui allient technologie et créativité.</p>
+    <!-- Contenu principal -->
+    <main role="main">
+        <!-- Section À propos -->
+        <section id="about" aria-labelledby="about-heading">
+            <div class="container">
+                <h2 id="about-heading">À propos de moi</h2>
+                <div class="about-content">
+                    <p>Je m'appelle <strong>Koksal</strong>, j'ai 20 ans et je suis passionné par l'informatique. Je suis particulièrement fort en <strong>Python</strong> et j'adore créer des projets innovants. Actuellement étudiant en informatique, je consacre mon temps à développer des idées qui allient technologie et créativité.</p>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="project">
-        <div class="container">
-            <h2>Mon Projet : SlowTalks</h2>
-            <div class="project-content">
-                <p><strong>SlowTalks</strong> est une plateforme conçue pour ceux qui aiment prendre le temps d’échanger, de découvrir et de partager. Ici, la communication est au cœur de l’expérience : créez votre compte, connectez-vous avec d’autres passionnés et laissez-vous porter par des discussions enrichissantes.</p>
-                <p>Mais ce n’est pas tout ! <strong>SlowTalks</strong>, c’est aussi un espace où la musique joue un rôle essentiel. Écoutez, partagez et découvrez de nouveaux sons tout en profitant d’une atmosphère propice à la détente et à l’inspiration.</p>
-                <p>Et ce n’est que le début… du contenu exclusif et des avantages uniques arriveront bientôt pour rendre votre expérience encore plus immersive.</p>
+        <!-- Section Projet -->
+        <section id="project" aria-labelledby="project-heading">
+            <div class="container">
+                <h2 id="project-heading">Mon Projet : SlowTalks</h2>
+                <div class="project-content">
+                    <p><strong>SlowTalks</strong> est une plateforme conçue pour ceux qui aiment prendre le temps d’échanger, de découvrir et de partager. Ici, la communication est au cœur de l’expérience : créez votre compte, connectez-vous avec d’autres passionnés et laissez-vous porter par des discussions enrichissantes.</p>
+                    <p>Mais ce n’est pas tout ! <strong>SlowTalks</strong>, c’est aussi un espace où la musique joue un rôle essentiel. Écoutez, partagez et découvrez de nouveaux sons tout en profitant d’une atmosphère propice à la détente et à l’inspiration.</p>
+                    <p>Et ce n’est que le début… du contenu exclusif et des avantages uniques arriveront bientôt pour rendre votre expérience encore plus immersive.</p>
+                </div>
+                <a href="https://slowtalks.derickexm.be/" class="btn" target="_blank" rel="noopener noreferrer" aria-label="Rejoignez l'aventure SlowTalks">Rejoignez l'aventure</a>
             </div>
-            <a href="https://slowtalks.derickexm.be/" class="btn" target="_blank">Rejoignez l'aventure</a>
-        </div>
-    </section>
+        </section>
 
-    <section id="contact">
-        <div class="container">
-            <h2>Contact</h2>
-            <p>Vous souhaitez en savoir plus sur SlowTalks ou me contacter ? Envoyez-moi un message !</p>
-            <form action="#" method="post">
-                <input type="text" name="name" placeholder="Votre nom" required>
-                <input type="email" name="email" placeholder="Votre email" required>
-                <textarea name="message" placeholder="Votre message" rows="5" required></textarea>
-                <button type="submit" class="btn">Envoyer</button>
-            </form>
-        </div>
-    </section>
+        <!-- Section Contact -->
+        <section id="contact" aria-labelledby="contact-heading">
+            <div class="container">
+                <h2 id="contact-heading">Contact</h2>
+                <p>Vous souhaitez en savoir plus sur SlowTalks ou me contacter ? Envoyez-moi un message !</p>
+                <form action="#" method="post" role="form">
+                    <input type="text" name="name" placeholder="Votre nom" aria-label="Votre nom" required>
+                    <input type="email" name="email" placeholder="Votre email" aria-label="Votre email" required>
+                    <textarea name="message" placeholder="Votre message" rows="5" aria-label="Votre message" required></textarea>
+                    <button type="submit" class="btn" aria-label="Envoyer le message">Envoyer</button>
+                </form>
+            </div>
+        </section>
+    </main>
 
-    <footer>
+    <!-- Pied de page -->
+    <footer role="contentinfo">
         <div class="container">
-            <p>&copy; 2023 SlowTalks. Tous droits réservés.</p>
+            <p>&copy; 2025 SlowTalks. Tous droits réservés.</p>
             <div class="social-links">
-                <a href="#" target="_blank"><i class="fab fa-github"></i></a>
-                <a href="#" target="_blank"><i class="fab fa-linkedin"></i></a>
-                <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
+                <a href="#" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                <a href="#" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                <a href="#" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
             </div>
         </div>
     </footer>
