@@ -3,73 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Site Web Magnifique</title>
+    <title>SlowTalks - Présentation</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <header>
-        <nav>
-            <div class="logo">MonLogo</div>
-            <ul class="nav-links">
-                <li><a href="#accueil">Accueil</a></li>
-                <li><a href="#services">Services</a></li>
-                <li><a href="#apropos">À Propos</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-            <div class="burger">
-                <div class="line1"></div>
-                <div class="line2"></div>
-                <div class="line3"></div>
-            </div>
-        </nav>
+        <div class="container">
+            <h1>Koksal</h1>
+            <p>Prenez le temps d'échanger, de découvrir et de partager.</p>
+            <a href="#about" class="btn">Découvrir</a>
+        </div>
     </header>
 
-    <section id="accueil" class="hero">
-        <div class="hero-content">
-            <h1>Bienvenue sur Mon Site Web</h1>
-            <p>Découvrez un design fluide et moderne.</p>
-            <a href="#services" class="cta">Explorer</a>
-        </div>
-    </section>
-
-    <section id="services" class="services">
-        <h2>Nos Services</h2>
-        <div class="service-cards">
-            <div class="card">
-                <h3>Service 1</h3>
-                <p>Description du service 1.</p>
-            </div>
-            <div class="card">
-                <h3>Service 2</h3>
-                <p>Description du service 2.</p>
-            </div>
-            <div class="card">
-                <h3>Service 3</h3>
-                <p>Description du service 3.</p>
+    <section id="about">
+        <div class="container">
+            <h2>À propos de moi</h2>
+            <div class="about-content">
+                <p>Je m'appelle <strong>SlowTalks</strong>, j'ai 20 ans et je suis passionné par l'informatique. Je suis particulièrement fort en <strong>Python</strong> et j'adore créer des projets innovants. Actuellement étudiant en informatique, je consacre mon temps à développer des idées qui allient technologie et créativité.</p>
             </div>
         </div>
     </section>
 
-    <section id="apropos" class="about">
-        <h2>À Propos de Nous</h2>
-        <p>Nous sommes une équipe passionnée qui crée des sites web magnifiques et fluides.</p>
+    <section id="project">
+        <div class="container">
+            <h2>Mon Projet : SlowTalks</h2>
+            <div class="project-content">
+                <p><strong>SlowTalks</strong> est une plateforme conçue pour ceux qui aiment prendre le temps d’échanger, de découvrir et de partager. Ici, la communication est au cœur de l’expérience : créez votre compte, connectez-vous avec d’autres passionnés et laissez-vous porter par des discussions enrichissantes.</p>
+                <p>Mais ce n’est pas tout ! <strong>SlowTalks</strong>, c’est aussi un espace où la musique joue un rôle essentiel. Écoutez, partagez et découvrez de nouveaux sons tout en profitant d’une atmosphère propice à la détente et à l’inspiration.</p>
+                <p>Et ce n’est que le début… du contenu exclusif et des avantages uniques arriveront bientôt pour rendre votre expérience encore plus immersive.</p>
+            </div>
+            <a href="https://slowtalks.derickexm.be/" class="btn" target="_blank">Rejoignez l'aventure</a>
+        </div>
     </section>
 
-    <section id="contact" class="contact">
-        <h2>Contactez-Nous</h2>
-        <form>
-            <input type="text" placeholder="Votre nom" required>
-            <input type="email" placeholder="Votre email" required>
-            <textarea placeholder="Votre message" required></textarea>
-            <button type="submit">Envoyer</button>
-        </form>
+    <section id="contact">
+        <div class="container">
+            <h2>Contact</h2>
+            <p>Vous souhaitez en savoir plus sur SlowTalks ou me contacter ? Envoyez-moi un message !</p>
+            <form action="#" method="post">
+                <input type="text" name="name" placeholder="Votre nom" required>
+                <input type="email" name="email" placeholder="Votre email" required>
+                <textarea name="message" placeholder="Votre message" rows="5" required></textarea>
+                <button type="submit" class="btn">Envoyer</button>
+            </form>
+        </div>
     </section>
 
     <footer>
-        <p>&copy; 2023 Mon Site Web. Tous droits réservés.</p>
+        <div class="container">
+            <p>&copy; 2023 SlowTalks. Tous droits réservés.</p>
+            <div class="social-links">
+                <a href="#" target="_blank"><i class="fab fa-github"></i></a>
+                <a href="#" target="_blank"><i class="fab fa-linkedin"></i></a>
+                <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
+            </div>
+        </div>
     </footer>
-
-    <script src="script.js"></script>
 </body>
 </html>
