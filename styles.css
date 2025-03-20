@@ -7,8 +7,16 @@
     --text-color: #333333; /* Gris foncé */
     --white: #FFFFFF;
     --transition: all 0.3s ease;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --border-radius: 10px;
+    --spacing-unit: 1rem;
 }
 
+/* Variables pour les médias queries */
+@custom-media --tablet (max-width: 768px);
+@custom-media --mobile (max-width: 480px);
+
+/* Reset de base */
 body {
     font-family: 'Arial', sans-serif;
     line-height: 1.6;
@@ -16,8 +24,12 @@ body {
     padding: 0;
     background-color: var(--background-color);
     color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
+/* Header */
 header {
     background: linear-gradient(rgba(0, 13, 255, 0.8), rgba(0, 191, 255, 0.8)), url('https://cdn.discordapp.com/attachments/1147220903156007042/1334179597322944643/IMG_3964.jpg?ex=67dd8213&is=67dc3093&hm=22dd0e3cf50fae6f13864165b151e1f6b89c5e15e8ef8feb7645e4cccaab21ca&');
     background-size: cover;
@@ -29,17 +41,19 @@ header {
     flex-direction: column;
     text-align: center;
     color: var(--white);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
 }
 
 header h1 {
     margin: 0;
-    font-size: 4em;
+    font-size: clamp(2.5rem, 8vw, 4rem); /* Taille de police responsive */
     animation: fadeIn 2s ease-in-out;
 }
 
 header p {
-    margin: 10px 0 20px;
-    font-size: 1.5em;
+    margin: var(--spacing-unit) 0 calc(var(--spacing-unit) * 2);
+    font-size: clamp(1rem, 4vw, 1.5rem); /* Taille de police responsive */
     animation: fadeIn 2.5s ease-in-out;
 }
 
@@ -47,16 +61,23 @@ header .btn {
     background: var(--accent-color);
     color: var(--white);
     padding: 15px 30px;
-    font-size: 1.2em;
-    border-radius: 50px;
+    font-size: clamp(1rem, 4vw, 1.2rem); /* Taille de police responsive */
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    transition: var(--transition);
     animation: fadeIn 3s ease-in-out;
+    will-change: transform, background-color;
+    backface-visibility: hidden;
+    transform: translateZ(0); /* Accélération matérielle */
 }
 
-header .btn:hover {
+header .btn:hover,
+header .btn:focus-visible {
     background: var(--primary-color);
     transform: translateY(-5px);
 }
 
+/* Conteneur principal */
 .container {
     width: 90%;
     max-width: 1200px;
@@ -64,17 +85,18 @@ header .btn:hover {
     padding: 60px 0;
 }
 
+/* Sections */
 section {
     padding: 60px 0;
     background-color: var(--white);
     margin: 20px 0;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
 }
 
 h2 {
     color: var(--primary-color);
-    font-size: 2.5em;
+    font-size: clamp(1.8rem, 6vw, 2.5rem); /* Taille de police responsive */
     margin-bottom: 20px;
     text-align: center;
 }
@@ -85,29 +107,42 @@ p {
     color: var(--text-color);
 }
 
+/* Boutons */
 .btn {
     display: inline-block;
     padding: 10px 20px;
     background: var(--primary-color);
     color: var(--white);
     text-decoration: none;
-    border-radius: 50px;
+    border-radius: var(--border-radius);
     transition: var(--transition);
     font-size: 1.1em;
+    will-change: transform, background-color;
+    backface-visibility: hidden;
+    transform: translateZ(0); /* Accélération matérielle */
 }
 
-.btn:hover {
+.btn:hover,
+.btn:focus-visible {
     background: var(--secondary-color);
     transform: translateY(-3px);
 }
 
+/* Formulaire */
 form input, form textarea {
     width: 100%;
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     font-size: 1em;
+    transition: var(--transition);
+}
+
+form input:focus, form textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 13, 255, 0.5);
 }
 
 form button {
@@ -115,35 +150,46 @@ form button {
     color: var(--white);
     border: none;
     padding: 10px 20px;
-    border-radius: 50px;
+    border-radius: var(--border-radius);
     cursor: pointer;
     transition: var(--transition);
+    will-change: transform, background-color;
+    backface-visibility: hidden;
+    transform: translateZ(0); /* Accélération matérielle */
 }
 
-form button:hover {
+form button:hover,
+form button:focus-visible {
     background: var(--accent-color);
 }
 
+/* Footer */
 footer {
     background: var(--primary-color);
     color: var(--white);
     text-align: center;
     padding: 20px 0;
-    margin-top: 40px;
+    margin-top: auto; /* Pour pousser le footer en bas */
 }
 
 .social-links {
     margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-unit); /* Espacement entre les icônes */
 }
 
 .social-links a {
     color: var(--white);
-    margin: 0 10px;
     font-size: 1.5em;
     transition: var(--transition);
+    will-change: color;
+    backface-visibility: hidden;
+    transform: translateZ(0); /* Accélération matérielle */
 }
 
-.social-links a:hover {
+.social-links a:hover,
+.social-links a:focus-visible {
     color: var(--secondary-color);
 }
 
@@ -156,5 +202,52 @@ footer {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (--tablet) {
+    header h1 {
+        font-size: 3em;
+    }
+
+    header p {
+        font-size: 1.2em;
+    }
+
+    h2 {
+        font-size: 2em;
+    }
+
+    .btn {
+        font-size: 1em;
+        padding: 8px 16px;
+    }
+
+    .container {
+        padding: 40px 0;
+    }
+
+    section {
+        padding: 40px 0;
+    }
+}
+
+@media (--mobile) {
+    header h1 {
+        font-size: 2.5em;
+    }
+
+    header p {
+        font-size: 1em;
+    }
+
+    h2 {
+        font-size: 1.8em;
+    }
+
+    .btn {
+        font-size: 0.9em;
+        padding: 6px 12px;
     }
 }
