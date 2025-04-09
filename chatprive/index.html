@@ -20,7 +20,6 @@
       align-items: center;
       min-height: 100vh;
     }
-
     .container {
       width: 100%;
       max-width: 600px;
@@ -30,12 +29,10 @@
       padding: 20px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
-
     h2 {
       text-align: center;
       margin-bottom: 15px;
     }
-
     input, button {
       width: 100%;
       padding: 10px;
@@ -43,23 +40,19 @@
       border-radius: 8px;
       border: none;
     }
-
     input {
       background: rgba(255, 255, 255, 0.8);
       color: #333;
     }
-
     button {
       background-color: #4CAF50;
       color: white;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-
     button:hover {
       background-color: #45a049;
     }
-
     #chat, #users, #typing {
       background: rgba(255, 255, 255, 0.2);
       border-radius: 8px;
@@ -68,19 +61,15 @@
       max-height: 200px;
       overflow-y: auto;
     }
-
     #users {
       font-size: 12px;
     }
-
     .dark-mode {
       background: linear-gradient(135deg, #232526, #414345);
     }
-
     ::-webkit-scrollbar {
       width: 5px;
     }
-
     ::-webkit-scrollbar-thumb {
       background-color: rgba(255, 255, 255, 0.5);
       border-radius: 10px;
@@ -96,7 +85,6 @@
     <button onclick="register()">S'inscrire</button>
     <button onclick="login()">Se connecter</button>
   </div>
-
   <div id="mainContent" style="display:none;">
     <h2>Chat Privé 🔒</h2>
     <button onclick="logout()">Se déconnecter</button>
@@ -108,9 +96,7 @@
     <button onclick="sendMessage()">Envoyer Message</button>
   </div>
 </div>
-
 <script>
-// Configuration Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDJdkm0NY3Qs3aFawlMz-wjHjdBR_gxnLs",
   authDomain: "slowfire-2f833.firebaseapp.com",
@@ -121,7 +107,6 @@ const firebaseConfig = {
   appId: "1:1024871744404:web:c5d1435e840042ed8c8581",
   measurementId: "G-3D35DNT431"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
@@ -130,9 +115,7 @@ function register() {
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
   auth.createUserWithEmailAndPassword(email, password)
-    .then(() => {
-      alert('Inscription réussie ! Connectez-vous.');
-    })
+    .then(() => { alert('Inscription réussie ! Connectez-vous.'); })
     .catch(error => { alert(error.message); });
 }
 
@@ -155,7 +138,6 @@ function logout() {
   });
 }
 
-// Chat
 let lastSentTime = 0;
 let pseudo;
 let sessionId;
@@ -215,7 +197,6 @@ function initializeChat() {
     const atBottom = chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 10;
 
     const p = document.createElement('p');
-
     try {
       const dynamicKey = CryptoJS.SHA256(key + data.timestamp).toString();
       const decrypted = CryptoJS.AES.decrypt(data.text, dynamicKey).toString(CryptoJS.enc.Utf8);
@@ -223,11 +204,8 @@ function initializeChat() {
     } catch (e) {
       p.textContent = time + " - (Erreur de déchiffrement)";
     }
-
     chat.appendChild(p);
-    if (atBottom) {
-      chat.scrollTop = chat.scrollHeight;
-    }
+    if (atBottom) chat.scrollTop = chat.scrollHeight;
   });
 
   const hour = new Date().getHours();
@@ -236,6 +214,5 @@ function initializeChat() {
   }
 }
 </script>
-
 </body>
 </html>
