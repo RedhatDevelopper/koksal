@@ -31,7 +31,7 @@
             margin-bottom: 15px; 
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
         }
-        input, button, #fileInput { 
+        input, button, #fileInput, #roomInput { 
             padding: 12px; 
             margin-top: 8px; 
             width: 100%; 
@@ -64,6 +64,7 @@
 
 <h2>Chat Privé Chiffré</h2>
 <input type="text" id="key" placeholder="Clé secrète" />
+<input type="text" id="roomInput" placeholder="Salon (ex: general)" />
 <div id="users"></div>
 <div id="chat"></div>
 <input type="text" id="message" placeholder="Votre message (max 200 caractères)" maxlength="200" />
@@ -71,7 +72,7 @@
 <button onclick="sendMessage()">Envoyer Message</button>
 <button onclick="sendFile()">Envoyer Fichier</button>
 <button onclick="toggleDarkMode()">Mode Sombre</button>
-<audio id="notifySound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
+<audio id="notifySound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
 
 <script>
   const firebaseConfig = {
@@ -89,7 +90,6 @@
   const db = firebase.database();
   const storage = firebase.storage();
 
-  const chatRef = db.ref("/messages");
   const usersRef = db.ref("/presence");
 
   let pseudo = "Invité_" + Math.floor(Math.random() * 10000);
@@ -99,7 +99,6 @@
   usersRef.child(sessionId).set(pseudo);
   usersRef.child(sessionId).onDisconnect().remove();
 
-  // Afficher utilisateurs connectés
   usersRef.on('value', snapshot => {
     const usersDiv = document.getElementById('users');
     usersDiv.innerHTML = '<strong>Connectés :</strong><br>';
@@ -108,21 +107,24 @@
     });
   });
 
-  // Envoyer un message chiffré
+  function getChatRef() {
+    const room = document.getElementById('roomInput').value.trim() || "general";
+    return db.ref(`/rooms/${room}/messages`);
+  }
+
   function sendMessage() {
     const key = document.getElementById('key').value.trim();
     const message = document.getElementById('message').value.trim();
-    if (key && message && message.length <= 200) {
+    if (key && message.length <= 200) {
       const fullMessage = pseudo + " : " + message;
       const dynamicKey = CryptoJS.SHA256(key + Date.now()).toString();
       const encrypted = CryptoJS.AES.encrypt(fullMessage, dynamicKey).toString();
       const timestamp = Date.now();
-      chatRef.push({ text: encrypted, timestamp: timestamp });
+      getChatRef().push({ text: encrypted, timestamp: timestamp });
       document.getElementById('message').value = '';
     }
   }
 
-  // Envoyer un fichier chiffré
   function sendFile() {
     const key = document.getElementById('key').value.trim();
     const file = document.getElementById('fileInput').files[0];
@@ -130,31 +132,45 @@
       const reader = new FileReader();
       reader.onload = function(e) {
         const fileData = e.target.result;
-        const encryptedFile = CryptoJS.AES.encrypt(fileData, key).toString();
         const timestamp = Date.now();
-        storage.ref('files/' + timestamp + '_' + file.name).putString(encryptedFile).then(snapshot => {
-          chatRef.push({ text: pseudo + ' a envoyé un fichier.', file: snapshot.metadata.fullPath, timestamp: timestamp });
+        storage.ref('files/' + timestamp + '_' + file.name).putString(fileData, 'data_url').then(snapshot => {
+          getChatRef().push({ file: snapshot.metadata.fullPath, timestamp: timestamp, sender: pseudo });
         });
       };
       reader.readAsDataURL(file);
     }
   }
 
-  // Recevoir et déchiffrer les messages
-  chatRef.on('child_added', snapshot => {
+  function downloadFile(filePath) {
+    storage.ref(filePath).getDownloadURL().then(url => {
+      const isImage = url.match(/\.(jpeg|jpg|gif|png)$/);
+      const chat = document.getElementById('chat');
+      const p = document.createElement('p');
+      if (isImage) {
+        p.innerHTML = `<img src="${url}" style="max-width:100%;border-radius:8px;"/>`;
+      } else {
+        p.innerHTML = `<a href="${url}" download>Télécharger le fichier</a>`;
+      }
+      chat.appendChild(p);
+      chat.scrollTop = chat.scrollHeight;
+      // Auto-destruction après téléchargement
+      storage.ref(filePath).delete();
+    });
+  }
+
+  getChatRef().on('child_added', snapshot => {
     const key = document.getElementById('key').value.trim();
     const data = snapshot.val();
-    const encrypted = data.text;
     const time = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : '';
     const chat = document.getElementById('chat');
     const p = document.createElement('p');
 
     if (data.file) {
-      p.innerHTML = time + " - " + encrypted + ' (<a href="#" onclick="downloadFile(\'' + data.file + '\')">Télécharger</a>)';
+      p.innerHTML = time + ` - ${data.sender} a envoyé un fichier (<a href="#" onclick="downloadFile('${data.file}')">Voir</a>)`;
     } else {
       try {
         const dynamicKey = CryptoJS.SHA256(key + data.timestamp).toString();
-        const decrypted = CryptoJS.AES.decrypt(encrypted, dynamicKey).toString(CryptoJS.enc.Utf8);
+        const decrypted = CryptoJS.AES.decrypt(data.text, dynamicKey).toString(CryptoJS.enc.Utf8);
         p.textContent = time + " - " + (decrypted || "(Message illisible - Mauvaise clé)");
       } catch (e) {
         p.textContent = time + " - (Erreur de déchiffrement)";
@@ -163,32 +179,8 @@
 
     chat.appendChild(p);
     chat.scrollTop = chat.scrollHeight;
-
-    // Notification sonore
     document.getElementById('notifySound').play();
   });
-
-  function downloadFile(filePath) {
-    storage.ref(filePath).getDownloadURL().then(url => {
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filePath.split('_').pop();
-      link.click();
-    });
-  }
-
-  // Nettoyer les anciens messages (supprimer après 1 heure)
-  setInterval(() => {
-    const oneHourAgo = Date.now() - 3600000;
-    chatRef.once('value', snapshot => {
-      snapshot.forEach(childSnapshot => {
-        const data = childSnapshot.val();
-        if (data.timestamp && data.timestamp < oneHourAgo) {
-          childSnapshot.ref.remove();
-        }
-      });
-    });
-  }, 60000);
 
   function toggleDarkMode() {
     document.body.classList.toggle('dark-mode');
