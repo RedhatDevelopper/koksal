@@ -2,217 +2,34 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Chat Privé Chiffré</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
-  <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background: #f4f7f8; display: flex; flex-direction: column; align-items: center; transition: background 0.5s, color 0.5s; overflow-x: hidden; }
-    #authDiv, #mainContent { width: 100%; max-width: 600px; }
-    #chat, #users { border: 1px solid #ccc; background: #ffffff; border-radius: 10px; padding: 15px; width: 100%; height: 250px; overflow-y: scroll; margin-bottom: 15px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); }
-    input, button, #fileInput { padding: 12px; margin-top: 8px; width: 100%; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); }
-    button { background-color: #4CAF50; color: white; font-weight: bold; cursor: pointer; }
-    button:hover { background-color: #45a049; }
-    h2 { color: #333; }
-    .dark-mode { background: #1e1e1e; color: #f4f4f4; }
-    .dark-mode #chat, .dark-mode #users { background: #2c2c2c; border-color: #555; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Koksal - Accueil</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<div id="authDiv">
-  <h2>Inscription / Connexion</h2>
-  <input type="email" id="email" placeholder="Email" />
-  <input type="password" id="password" placeholder="Mot de passe" />
-  <button onclick="register()">S'inscrire</button>
-  <button onclick="login()">Se connecter</button>
-</div>
+<header>
+  <h1>Bienvenue sur Koksal</h1>
+  <nav>
+    <ul>
+      <li><a href="#">Accueil</a></li>
+      <li><a href="/chatprive">Chat Privé</a></li> <!-- 👉 Ajout du lien vers /chatprive -->
+    </ul>
+  </nav>
+</header>
 
-<div id="mainContent" style="display:none;">
-  <h2>Chat Privé Chiffré</h2>
-  <button onclick="logout()">Se déconnecter</button>
-  <input type="text" id="key" placeholder="Clé secrète" />
-  <div id="users"></div>
-  <div id="chat"></div>
-  <div id="typing"></div>
-  <input type="text" id="message" placeholder="Votre message (max 200 caractères)" maxlength="200" oninput="updateTyping()" />
-  <button onclick="sendMessage()">Envoyer Message</button>
-</div>
+<main>
+  <section>
+    <h2>Notre Projet</h2>
+    <p>Découvrez une expérience unique de communication sécurisée et anonyme.</p>
+    <a class="btn" href="/chatprive">Accéder au Chat Privé 🔒</a> <!-- 👉 Lien bouton propre -->
+  </section>
+</main>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDJdkm0NY3Qs3aFawlMz-wjHjdBR_gxnLs",
-    authDomain: "slowfire-2f833.firebaseapp.com",
-    databaseURL: "https://slowfire-2f833-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "slowfire-2f833",
-    storageBucket: "slowfire-2f833.appspot.com",
-    messagingSenderId: "1024871744404",
-    appId: "1:1024871744404:web:c5d1435e840042ed8c8581",
-    measurementId: "G-3D35DNT431"
-  };
+<footer>
+  <p>&copy; 2025 Koksal. Tous droits réservés.</p>
+</footer>
 
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.database();
-  const storage = firebase.storage();
-
-  function register() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    auth.createUserWithEmailAndPassword(email, password)
-      .then(() => {
-        alert('Inscription réussie ! Connectez-vous.');
-      })
-      .catch(error => { alert(error.message); });
-  }
-
-  function login() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    auth.signInWithEmailAndPassword(email, password)
-      .then(() => {
-        document.getElementById('authDiv').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
-        initializeChat();
-      })
-      .catch(error => { alert(error.message); });
-  }
-
-  function logout() {
-    auth.signOut().then(() => {
-      document.getElementById('mainContent').style.display = 'none';
-      document.getElementById('authDiv').style.display = 'block';
-    });
-  }
-
-  // CHAT SYSTEME
-  let lastSentTime = 0;
-  let pseudo;
-  let sessionId;
-
-  function initializeChat() {
-    const usersRef = db.ref("/presence");
-    const chatRef = db.ref("/general/messages");
-    const typingRef = db.ref("/general/typing");
-
-    pseudo = "Utilisateur_" + Math.floor(Math.random() * 10000);
-    sessionId = Math.random().toString(36).substring(2);
-
-    usersRef.child(sessionId).set(pseudo);
-    usersRef.child(sessionId).onDisconnect().remove();
-
-    usersRef.on('value', snapshot => {
-      const usersDiv = document.getElementById('users');
-      usersDiv.innerHTML = '<strong>Connectés :</strong><br>';
-      snapshot.forEach(child => {
-        usersDiv.innerHTML += child.val() + '<br>';
-      });
-    });
-
-    window.sendMessage = function() {
-      const key = document.getElementById('key').value.trim();
-      const message = document.getElementById('message').value.trim();
-      const now = Date.now();
-
-      if (now - lastSentTime < 1000) {
-        alert('Veuillez attendre une seconde entre chaque message.');
-        return;
-      }
-
-      if (key && message.length <= 200) {
-        const timestamp = now;
-        const dynamicKey = CryptoJS.SHA256(key + timestamp).toString();
-        const fullMessage = pseudo + " : " + message;
-        const encrypted = CryptoJS.AES.encrypt(fullMessage, dynamicKey).toString();
-
-        chatRef.push({ text: encrypted, timestamp: timestamp });
-        document.getElementById('message').value = '';
-        typingRef.child(sessionId).remove();
-        lastSentTime = now;
-      }
-    };
-
-    window.sendFile = function() {
-      const key = document.getElementById('key').value.trim();
-      const file = document.getElementById('fileInput').files[0];
-      if (key && file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const fileData = e.target.result;
-          const timestamp = Date.now();
-          storage.ref('files/' + timestamp + '_' + file.name).putString(fileData, 'data_url').then(snapshot => {
-            chatRef.push({ file: snapshot.metadata.fullPath, timestamp: timestamp, sender: pseudo });
-          });
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-
-    window.updateTyping = function() {
-      typingRef.child(sessionId).set(pseudo);
-      setTimeout(() => typingRef.child(sessionId).remove(), 3000);
-    };
-
-    typingRef.on('value', snapshot => {
-      const typingDiv = document.getElementById('typing');
-      typingDiv.innerHTML = '';
-      snapshot.forEach(child => {
-        typingDiv.innerHTML += child.val() + ' écrit...<br>';
-      });
-    });
-
-    chatRef.on('child_added', snapshot => {
-      const key = document.getElementById('key').value.trim();
-      const data = snapshot.val();
-      const time = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : '';
-      const chat = document.getElementById('chat');
-      const atBottom = chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 10;
-
-      const p = document.createElement('p');
-
-      if (data.file) {
-        p.innerHTML = time + ` - ${data.sender} a envoyé un fichier (<a href="#" onclick="downloadFile('${data.file}')">Voir</a>)`;
-      } else {
-        try {
-          const dynamicKey = CryptoJS.SHA256(key + data.timestamp).toString();
-          const decrypted = CryptoJS.AES.decrypt(data.text, dynamicKey).toString(CryptoJS.enc.Utf8);
-          p.textContent = time + " - " + (decrypted || "(Message illisible - Mauvaise clé)");
-        } catch (e) {
-          p.textContent = time + " - (Erreur de déchiffrement)";
-        }
-      }
-
-      chat.appendChild(p);
-      if (atBottom) {
-        chat.scrollTop = chat.scrollHeight;
-      }
-    });
-
-    window.downloadFile = function(filePath) {
-      storage.ref(filePath).getDownloadURL().then(url => {
-        const isImage = url.match(/\.(jpeg|jpg|gif|png)$/);
-        const chat = document.getElementById('chat');
-        const p = document.createElement('p');
-        if (isImage) {
-          p.innerHTML = `<img src="${url}" style="max-width:100%;border-radius:8px;"/>`;
-        } else {
-          p.innerHTML = `<a href="${url}" download>Télécharger le fichier</a>`;
-        }
-        chat.appendChild(p);
-        chat.scrollTop = chat.scrollHeight;
-        storage.ref(filePath).delete();
-      });
-    };
-
-    const hour = new Date().getHours();
-    if (hour >= 19 || hour <= 7) {
-      document.body.classList.add('dark-mode');
-    }
-  }
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
