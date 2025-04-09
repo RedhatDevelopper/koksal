@@ -17,14 +17,14 @@
             align-items: center; 
             transition: background 0.5s, color 0.5s;
         }
-        #chat { 
+        #chat, #users { 
             border: 1px solid #ccc; 
             background: #ffffff; 
             border-radius: 10px; 
             padding: 15px; 
             width: 100%; 
             max-width: 600px; 
-            height: 400px; 
+            height: 200px; 
             overflow-y: scroll; 
             margin-bottom: 15px; 
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
@@ -52,7 +52,7 @@
             background: #1e1e1e; 
             color: #f4f4f4; 
         }
-        .dark-mode #chat { 
+        .dark-mode #chat, .dark-mode #users { 
             background: #2c2c2c; 
             border-color: #555;
         }
@@ -62,13 +62,13 @@
 
 <h2>Chat Privé Chiffré</h2>
 <input type="text" id="key" placeholder="Clé secrète" />
+<div id="users"></div>
 <div id="chat"></div>
 <input type="text" id="message" placeholder="Votre message (max 200 caractères)" maxlength="200" />
 <button onclick="sendMessage()">Envoyer</button>
 <button onclick="toggleDarkMode()">Mode Sombre</button>
 
 <script>
-  // Configuration Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyDJdkm0NY3Qs3aFawlMz-wjHjdBR_gxnLs",
     authDomain: "slowfire-2f833.firebaseapp.com",
@@ -84,13 +84,32 @@
   const db = firebase.database();
 
   const chatRef = db.ref("/messages");
+  const usersRef = db.ref("/presence");
+
+  let pseudo = "Invité_" + Math.floor(Math.random() * 10000);
+  const sessionId = Math.random().toString(36).substring(2);
+
+  // Mise à jour présence utilisateur
+  usersRef.child(sessionId).set(pseudo);
+  usersRef.child(sessionId).onDisconnect().remove();
+
+  // Afficher utilisateurs connectés
+  usersRef.on('value', snapshot => {
+    const usersDiv = document.getElementById('users');
+    usersDiv.innerHTML = '<strong>Connectés :</strong><br>';
+    snapshot.forEach(child => {
+      usersDiv.innerHTML += child.val() + '<br>';
+    });
+  });
 
   // Envoyer un message chiffré
   function sendMessage() {
     const key = document.getElementById('key').value.trim();
     const message = document.getElementById('message').value.trim();
     if (key && message && message.length <= 200) {
-      const encrypted = CryptoJS.AES.encrypt(message, key).toString();
+      const fullMessage = pseudo + " : " + message;
+      const dynamicKey = CryptoJS.SHA256(key + Date.now()).toString();
+      const encrypted = CryptoJS.AES.encrypt(fullMessage, dynamicKey).toString();
       const timestamp = Date.now();
       chatRef.push({ text: encrypted, timestamp: timestamp });
       document.getElementById('message').value = '';
@@ -105,7 +124,9 @@
     const time = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : '';
     let decrypted;
     try {
-      decrypted = CryptoJS.AES.decrypt(encrypted, key).toString(CryptoJS.enc.Utf8);
+      // Simulation de décryptage hybride simple : dériver la clé dynamique
+      const dynamicKey = CryptoJS.SHA256(key + data.timestamp).toString();
+      decrypted = CryptoJS.AES.decrypt(encrypted, dynamicKey).toString(CryptoJS.enc.Utf8);
     } catch (e) {
       decrypted = "(Impossible de déchiffrer)";
     }
@@ -118,7 +139,7 @@
 
   // Nettoyer les anciens messages (supprimer après 1 heure)
   setInterval(() => {
-    const oneHourAgo = Date.now() - 3600000; // 1 heure en millisecondes
+    const oneHourAgo = Date.now() - 3600000;
     chatRef.once('value', snapshot => {
       snapshot.forEach(childSnapshot => {
         const data = childSnapshot.val();
@@ -127,9 +148,8 @@
         }
       });
     });
-  }, 60000); // Vérifie toutes les 60 secondes
+  }, 60000);
 
-  // Basculer en mode sombre
   function toggleDarkMode() {
     document.body.classList.toggle('dark-mode');
   }
