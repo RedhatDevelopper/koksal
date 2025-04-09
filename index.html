@@ -8,9 +8,45 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        #chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
-        input, button { padding: 10px; margin-top: 5px; width: 100%; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 20px; 
+            background: #f4f7f8; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+        #chat { 
+            border: 1px solid #ccc; 
+            background: #ffffff; 
+            border-radius: 10px; 
+            padding: 15px; 
+            width: 100%; 
+            max-width: 600px; 
+            height: 400px; 
+            overflow-y: scroll; 
+            margin-bottom: 15px; 
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        input, button { 
+            padding: 12px; 
+            margin-top: 8px; 
+            width: 100%; 
+            max-width: 600px; 
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        button { 
+            background-color: #4CAF50; 
+            color: white; 
+            font-weight: bold;
+            cursor: pointer; 
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        h2 { color: #333; }
     </style>
 </head>
 <body>
@@ -18,22 +54,20 @@
 <h2>Chat Privé Chiffré</h2>
 <input type="text" id="key" placeholder="Clé secrète" />
 <div id="chat"></div>
-<input type="text" id="message" placeholder="Votre message" />
+<input type="text" id="message" placeholder="Votre message (max 200 caractères)" maxlength="200" />
 <button onclick="sendMessage()">Envoyer</button>
 
 <script>
   // Configuration Firebase
   const firebaseConfig = {
-    apiKey: "AIzaSyDJdkm0NY3Qs3aFawlMz-wjHjdBR_gxnLs",
-    authDomain: "slowfire-2f833.firebaseapp.com",
-    databaseURL: "https://slowfire-2f833-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "slowfire-2f833",
-    storageBucket: "slowfire-2f833.firebasestorage.app",
-    messagingSenderId: "1024871744404",
-    appId: "1:1024871744404:web:c5d1435e840042ed8c8581",
-    measurementId: "G-3D35DNT431"
+    apiKey: "VOTRE_API_KEY",
+    authDomain: "VOTRE_PROJECT_ID.firebaseapp.com",
+    databaseURL: "https://VOTRE_PROJECT_ID.firebaseio.com",
+    projectId: "VOTRE_PROJECT_ID",
+    storageBucket: "VOTRE_PROJECT_ID.appspot.com",
+    messagingSenderId: "VOTRE_MESSAGING_SENDER_ID",
+    appId: "VOTRE_APP_ID"
   };
-
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
@@ -42,19 +76,21 @@
 
   // Envoyer un message chiffré
   function sendMessage() {
-    const key = document.getElementById('key').value;
-    const message = document.getElementById('message').value;
-    if (key && message) {
+    const key = document.getElementById('key').value.trim();
+    const message = document.getElementById('message').value.trim();
+    if (key && message && message.length <= 200) {
       const encrypted = CryptoJS.AES.encrypt(message, key).toString();
-      chatRef.push({ text: encrypted });
+      const timestamp = Date.now();
+      chatRef.push({ text: encrypted, timestamp: timestamp });
       document.getElementById('message').value = '';
     }
   }
 
   // Recevoir et déchiffrer les messages
   chatRef.on('child_added', snapshot => {
-    const key = document.getElementById('key').value;
-    const encrypted = snapshot.val().text;
+    const key = document.getElementById('key').value.trim();
+    const data = snapshot.val();
+    const encrypted = data.text;
     let decrypted;
     try {
       decrypted = CryptoJS.AES.decrypt(encrypted, key).toString(CryptoJS.enc.Utf8);
@@ -67,6 +103,19 @@
     chat.appendChild(p);
     chat.scrollTop = chat.scrollHeight;
   });
+
+  // Nettoyer les anciens messages (supprimer après 1 heure)
+  setInterval(() => {
+    const oneHourAgo = Date.now() - 3600000; // 1 heure en millisecondes
+    chatRef.once('value', snapshot => {
+      snapshot.forEach(childSnapshot => {
+        const data = childSnapshot.val();
+        if (data.timestamp && data.timestamp < oneHourAgo) {
+          childSnapshot.ref.remove();
+        }
+      });
+    });
+  }, 60000); // Vérifie toutes les 60 secondes
 </script>
 
 </body>
