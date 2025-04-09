@@ -2,10 +2,11 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chat Privé Chiffré</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
     <style>
         body { 
@@ -16,6 +17,7 @@
             flex-direction: column; 
             align-items: center; 
             transition: background 0.5s, color 0.5s;
+            overflow-x: hidden;
         }
         #chat, #users { 
             border: 1px solid #ccc; 
@@ -29,7 +31,7 @@
             margin-bottom: 15px; 
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
         }
-        input, button { 
+        input, button, #fileInput { 
             padding: 12px; 
             margin-top: 8px; 
             width: 100%; 
@@ -65,8 +67,11 @@
 <div id="users"></div>
 <div id="chat"></div>
 <input type="text" id="message" placeholder="Votre message (max 200 caractères)" maxlength="200" />
-<button onclick="sendMessage()">Envoyer</button>
+<input type="file" id="fileInput" />
+<button onclick="sendMessage()">Envoyer Message</button>
+<button onclick="sendFile()">Envoyer Fichier</button>
 <button onclick="toggleDarkMode()">Mode Sombre</button>
+<audio id="notifySound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
 
 <script>
   const firebaseConfig = {
@@ -74,7 +79,7 @@
     authDomain: "slowfire-2f833.firebaseapp.com",
     databaseURL: "https://slowfire-2f833-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "slowfire-2f833",
-    storageBucket: "slowfire-2f833.firebasestorage.app",
+    storageBucket: "slowfire-2f833.appspot.com",
     messagingSenderId: "1024871744404",
     appId: "1:1024871744404:web:c5d1435e840042ed8c8581",
     measurementId: "G-3D35DNT431"
@@ -82,6 +87,7 @@
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
+  const storage = firebase.storage();
 
   const chatRef = db.ref("/messages");
   const usersRef = db.ref("/presence");
@@ -116,26 +122,60 @@
     }
   }
 
+  // Envoyer un fichier chiffré
+  function sendFile() {
+    const key = document.getElementById('key').value.trim();
+    const file = document.getElementById('fileInput').files[0];
+    if (key && file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const fileData = e.target.result;
+        const encryptedFile = CryptoJS.AES.encrypt(fileData, key).toString();
+        const timestamp = Date.now();
+        storage.ref('files/' + timestamp + '_' + file.name).putString(encryptedFile).then(snapshot => {
+          chatRef.push({ text: pseudo + ' a envoyé un fichier.', file: snapshot.metadata.fullPath, timestamp: timestamp });
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   // Recevoir et déchiffrer les messages
   chatRef.on('child_added', snapshot => {
     const key = document.getElementById('key').value.trim();
     const data = snapshot.val();
     const encrypted = data.text;
     const time = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : '';
-    let decrypted;
-    try {
-      // Simulation de décryptage hybride simple : dériver la clé dynamique
-      const dynamicKey = CryptoJS.SHA256(key + data.timestamp).toString();
-      decrypted = CryptoJS.AES.decrypt(encrypted, dynamicKey).toString(CryptoJS.enc.Utf8);
-    } catch (e) {
-      decrypted = "(Impossible de déchiffrer)";
-    }
     const chat = document.getElementById('chat');
     const p = document.createElement('p');
-    p.textContent = time + " - " + (decrypted || "(Message illisible - Mauvaise clé)");
+
+    if (data.file) {
+      p.innerHTML = time + " - " + encrypted + ' (<a href="#" onclick="downloadFile(\'' + data.file + '\')">Télécharger</a>)';
+    } else {
+      try {
+        const dynamicKey = CryptoJS.SHA256(key + data.timestamp).toString();
+        const decrypted = CryptoJS.AES.decrypt(encrypted, dynamicKey).toString(CryptoJS.enc.Utf8);
+        p.textContent = time + " - " + (decrypted || "(Message illisible - Mauvaise clé)");
+      } catch (e) {
+        p.textContent = time + " - (Erreur de déchiffrement)";
+      }
+    }
+
     chat.appendChild(p);
     chat.scrollTop = chat.scrollHeight;
+
+    // Notification sonore
+    document.getElementById('notifySound').play();
   });
+
+  function downloadFile(filePath) {
+    storage.ref(filePath).getDownloadURL().then(url => {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filePath.split('_').pop();
+      link.click();
+    });
+  }
 
   // Nettoyer les anciens messages (supprimer après 1 heure)
   setInterval(() => {
