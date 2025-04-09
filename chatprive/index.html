@@ -219,7 +219,7 @@ function initializeChat() {
     try {
       const dynamicKey = CryptoJS.SHA256(key + data.timestamp).toString();
       const decrypted = CryptoJS.AES.decrypt(data.text, dynamicKey).toString(CryptoJS.enc.Utf8);
-      p.textContent = time + " - " + (decrypted || \"(Message illisible - Mauvaise clé)\");
+      p.textContent = time + " - " + (decrypted || "(Message illisible - Mauvaise clé)");
     } catch (e) {
       p.textContent = time + " - (Erreur de déchiffrement)";
     }
