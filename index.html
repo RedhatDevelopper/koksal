@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Privé Chiffré</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        #chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
+        input, button { padding: 10px; margin-top: 5px; width: 100%; }
+    </style>
+</head>
+<body>
+
+<h2>Chat Privé Chiffré</h2>
+<input type="text" id="key" placeholder="Clé secrète" />
+<div id="chat"></div>
+<input type="text" id="message" placeholder="Votre message" />
+<button onclick="sendMessage()">Envoyer</button>
+
+<script>
+  // Configuration Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJdkm0NY3Qs3aFawlMz-wjHjdBR_gxnLs",
+    authDomain: "slowfire-2f833.firebaseapp.com",
+    databaseURL: "https://slowfire-2f833-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "slowfire-2f833",
+    storageBucket: "slowfire-2f833.firebasestorage.app",
+    messagingSenderId: "1024871744404",
+    appId: "1:1024871744404:web:c5d1435e840042ed8c8581",
+    measurementId: "G-3D35DNT431"
+  };
+
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const chatRef = db.ref("/messages");
+
+  // Envoyer un message chiffré
+  function sendMessage() {
+    const key = document.getElementById('key').value;
+    const message = document.getElementById('message').value;
+    if (key && message) {
+      const encrypted = CryptoJS.AES.encrypt(message, key).toString();
+      chatRef.push({ text: encrypted });
+      document.getElementById('message').value = '';
+    }
+  }
+
+  // Recevoir et déchiffrer les messages
+  chatRef.on('child_added', snapshot => {
+    const key = document.getElementById('key').value;
+    const encrypted = snapshot.val().text;
+    let decrypted;
+    try {
+      decrypted = CryptoJS.AES.decrypt(encrypted, key).toString(CryptoJS.enc.Utf8);
+    } catch (e) {
+      decrypted = "(Impossible de déchiffrer)";
+    }
+    const chat = document.getElementById('chat');
+    const p = document.createElement('p');
+    p.textContent = decrypted || "(Message illisible - Mauvaise clé)";
+    chat.appendChild(p);
+    chat.scrollTop = chat.scrollHeight;
+  });
+</script>
+
+</body>
+</html>
