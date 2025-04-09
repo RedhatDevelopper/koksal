@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chat Privé Chiffré</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
@@ -19,7 +20,7 @@
             transition: background 0.5s, color 0.5s;
             overflow-x: hidden;
         }
-        #loginDiv, #mainContent { 
+        #authDiv, #mainContent { 
             width: 100%; 
             max-width: 600px; 
         }
@@ -64,10 +65,12 @@
 </head>
 <body>
 
-<div id="loginDiv">
-    <h2>Connexion Admin</h2>
-    <input type="password" id="adminPassword" placeholder="Mot de passe admin" />
-    <button onclick="checkLogin()">Se connecter</button>
+<div id="authDiv">
+    <h2>Inscription / Connexion</h2>
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Mot de passe" />
+    <button onclick="register()">S'inscrire</button>
+    <button onclick="login()">Se connecter</button>
 </div>
 
 <div id="mainContent" style="display:none;">
@@ -83,18 +86,6 @@
 </div>
 
 <script>
-function checkLogin() {
-    const password = document.getElementById('adminPassword').value;
-    if (password === 'bB26_kazama') {
-        document.getElementById('loginDiv').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
-        initializeChat();
-    } else {
-        alert('Mot de passe incorrect.');
-    }
-}
-
-function initializeChat() {
   const firebaseConfig = {
     apiKey: "AIzaSyDJdkm0NY3Qs3aFawlMz-wjHjdBR_gxnLs",
     authDomain: "slowfire-2f833.firebaseapp.com",
@@ -107,120 +98,148 @@ function initializeChat() {
   };
 
   firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
   const db = firebase.database();
   const storage = firebase.storage();
 
-  const usersRef = db.ref("/presence");
-  const chatRef = db.ref("/general/messages");
-  const typingRef = db.ref("/general/typing");
-
-  let pseudo = "Invité_" + Math.floor(Math.random() * 10000);
-  const sessionId = Math.random().toString(36).substring(2);
-
-  usersRef.child(sessionId).set(pseudo);
-  usersRef.child(sessionId).onDisconnect().remove();
-
-  usersRef.on('value', snapshot => {
-    const usersDiv = document.getElementById('users');
-    usersDiv.innerHTML = '<strong>Connectés :</strong><br>';
-    snapshot.forEach(child => {
-      usersDiv.innerHTML += child.val() + '<br>';
-    });
-  });
-
-  function sendMessage() {
-    const key = document.getElementById('key').value.trim();
-    const message = document.getElementById('message').value.trim();
-    if (key && message.length <= 200) {
-      const fullMessage = pseudo + " : " + message;
-      const dynamicKey = CryptoJS.SHA256(key + Date.now()).toString();
-      const encrypted = CryptoJS.AES.encrypt(fullMessage, dynamicKey).toString();
-      const timestamp = Date.now();
-      chatRef.push({ text: encrypted, timestamp: timestamp });
-      document.getElementById('message').value = '';
-      typingRef.child(sessionId).remove();
-    }
+  function register() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        const user = userCredential.user;
+        db.ref('users/' + user.uid).set({ email: user.email });
+        alert('Inscription réussie, vous pouvez maintenant vous connecter.');
+      })
+      .catch(error => {
+        alert(error.message);
+      });
   }
 
-  function sendFile() {
-    const key = document.getElementById('key').value.trim();
-    const file = document.getElementById('fileInput').files[0];
-    if (key && file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const fileData = e.target.result;
+  function login() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    auth.signInWithEmailAndPassword(email, password)
+      .then(() => {
+        document.getElementById('authDiv').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        initializeChat();
+      })
+      .catch(error => {
+        alert(error.message);
+      });
+  }
+
+  function initializeChat() {
+    const usersRef = db.ref("/presence");
+    const chatRef = db.ref("/general/messages");
+    const typingRef = db.ref("/general/typing");
+
+    let pseudo = "Utilisateur_" + Math.floor(Math.random() * 10000);
+    const sessionId = Math.random().toString(36).substring(2);
+
+    usersRef.child(sessionId).set(pseudo);
+    usersRef.child(sessionId).onDisconnect().remove();
+
+    usersRef.on('value', snapshot => {
+      const usersDiv = document.getElementById('users');
+      usersDiv.innerHTML = '<strong>Connectés :</strong><br>';
+      snapshot.forEach(child => {
+        usersDiv.innerHTML += child.val() + '<br>';
+      });
+    });
+
+    window.sendMessage = function() {
+      const key = document.getElementById('key').value.trim();
+      const message = document.getElementById('message').value.trim();
+      if (key && message.length <= 200) {
+        const fullMessage = pseudo + " : " + message;
+        const dynamicKey = CryptoJS.SHA256(key + Date.now()).toString();
+        const encrypted = CryptoJS.AES.encrypt(fullMessage, dynamicKey).toString();
         const timestamp = Date.now();
-        storage.ref('files/' + timestamp + '_' + file.name).putString(fileData, 'data_url').then(snapshot => {
-          chatRef.push({ file: snapshot.metadata.fullPath, timestamp: timestamp, sender: pseudo });
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  window.sendMessage = sendMessage;
-  window.sendFile = sendFile;
-  window.updateTyping = function() {
-    typingRef.child(sessionId).set(pseudo);
-    setTimeout(() => typingRef.child(sessionId).remove(), 3000);
-  }
-
-  typingRef.on('value', snapshot => {
-    const typingDiv = document.getElementById('typing');
-    typingDiv.innerHTML = '';
-    snapshot.forEach(child => {
-      typingDiv.innerHTML += child.val() + ' écrit...<br>';
-    });
-  });
-
-  chatRef.on('child_added', snapshot => {
-    const key = document.getElementById('key').value.trim();
-    const data = snapshot.val();
-    const time = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : '';
-    const chat = document.getElementById('chat');
-    const atBottom = chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 10;
-
-    const p = document.createElement('p');
-
-    if (data.file) {
-      p.innerHTML = time + ` - ${data.sender} a envoyé un fichier (<a href="#" onclick="downloadFile('${data.file}')">Voir</a>)`;
-    } else {
-      try {
-        const dynamicKey = CryptoJS.SHA256(key + data.timestamp).toString();
-        const decrypted = CryptoJS.AES.decrypt(data.text, dynamicKey).toString(CryptoJS.enc.Utf8);
-        p.textContent = time + " - " + (decrypted || "(Message illisible - Mauvaise clé)");
-      } catch (e) {
-        p.textContent = time + " - (Erreur de déchiffrement)";
+        chatRef.push({ text: encrypted, timestamp: timestamp });
+        document.getElementById('message').value = '';
+        typingRef.child(sessionId).remove();
       }
-    }
+    };
 
-    chat.appendChild(p);
-    if (atBottom) {
-      chat.scrollTop = chat.scrollHeight;
-    }
-  });
+    window.sendFile = function() {
+      const key = document.getElementById('key').value.trim();
+      const file = document.getElementById('fileInput').files[0];
+      if (key && file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const fileData = e.target.result;
+          const timestamp = Date.now();
+          storage.ref('files/' + timestamp + '_' + file.name).putString(fileData, 'data_url').then(snapshot => {
+            chatRef.push({ file: snapshot.metadata.fullPath, timestamp: timestamp, sender: pseudo });
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+    };
 
-  window.downloadFile = function(filePath) {
-    storage.ref(filePath).getDownloadURL().then(url => {
-      const isImage = url.match(/\.(jpeg|jpg|gif|png)$/);
+    window.updateTyping = function() {
+      typingRef.child(sessionId).set(pseudo);
+      setTimeout(() => typingRef.child(sessionId).remove(), 3000);
+    };
+
+    typingRef.on('value', snapshot => {
+      const typingDiv = document.getElementById('typing');
+      typingDiv.innerHTML = '';
+      snapshot.forEach(child => {
+        typingDiv.innerHTML += child.val() + ' écrit...<br>';
+      });
+    });
+
+    chatRef.on('child_added', snapshot => {
+      const key = document.getElementById('key').value.trim();
+      const data = snapshot.val();
+      const time = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : '';
       const chat = document.getElementById('chat');
-      const p = document.createElement('p');
-      if (isImage) {
-        p.innerHTML = `<img src="${url}" style="max-width:100%;border-radius:8px;"/>`;
-      } else {
-        p.innerHTML = `<a href="${url}" download>Télécharger le fichier</a>`;
-      }
-      chat.appendChild(p);
-      chat.scrollTop = chat.scrollHeight;
-      storage.ref(filePath).delete();
-    });
-  }
+      const atBottom = chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 10;
 
-  const hour = new Date().getHours();
-  if (hour >= 19 || hour <= 7) {
-    document.body.classList.add('dark-mode');
+      const p = document.createElement('p');
+
+      if (data.file) {
+        p.innerHTML = time + ` - ${data.sender} a envoyé un fichier (<a href="#" onclick="downloadFile('${data.file}')">Voir</a>)`;
+      } else {
+        try {
+          const dynamicKey = CryptoJS.SHA256(key + data.timestamp).toString();
+          const decrypted = CryptoJS.AES.decrypt(data.text, dynamicKey).toString(CryptoJS.enc.Utf8);
+          p.textContent = time + " - " + (decrypted || "(Message illisible - Mauvaise clé)");
+        } catch (e) {
+          p.textContent = time + " - (Erreur de déchiffrement)";
+        }
+      }
+
+      chat.appendChild(p);
+      if (atBottom) {
+        chat.scrollTop = chat.scrollHeight;
+      }
+    });
+
+    window.downloadFile = function(filePath) {
+      storage.ref(filePath).getDownloadURL().then(url => {
+        const isImage = url.match(/\.(jpeg|jpg|gif|png)$/);
+        const chat = document.getElementById('chat');
+        const p = document.createElement('p');
+        if (isImage) {
+          p.innerHTML = `<img src="${url}" style="max-width:100%;border-radius:8px;"/>`;
+        } else {
+          p.innerHTML = `<a href="${url}" download>Télécharger le fichier</a>`;
+        }
+        chat.appendChild(p);
+        chat.scrollTop = chat.scrollHeight;
+        storage.ref(filePath).delete();
+      });
+    };
+
+    const hour = new Date().getHours();
+    if (hour >= 19 || hour <= 7) {
+      document.body.classList.add('dark-mode');
+    }
   }
-}
 </script>
 
 </body>
