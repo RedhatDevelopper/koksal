@@ -19,13 +19,16 @@
             transition: background 0.5s, color 0.5s;
             overflow-x: hidden;
         }
+        #loginDiv, #mainContent { 
+            width: 100%; 
+            max-width: 600px; 
+        }
         #chat, #users { 
             border: 1px solid #ccc; 
             background: #ffffff; 
             border-radius: 10px; 
             padding: 15px; 
             width: 100%; 
-            max-width: 600px; 
             height: 250px; 
             overflow-y: scroll; 
             margin-bottom: 15px; 
@@ -35,7 +38,6 @@
             padding: 12px; 
             margin-top: 8px; 
             width: 100%; 
-            max-width: 600px; 
             border: 1px solid #ccc; 
             border-radius: 8px; 
             box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
@@ -62,17 +64,37 @@
 </head>
 <body>
 
-<h2>Chat Privé Chiffré</h2>
-<input type="text" id="key" placeholder="Clé secrète" />
-<div id="users"></div>
-<div id="chat"></div>
-<div id="typing"></div>
-<input type="text" id="message" placeholder="Votre message (max 200 caractères)" maxlength="200" oninput="updateTyping()" />
-<input type="file" id="fileInput" />
-<button onclick="sendMessage()">Envoyer Message</button>
-<button onclick="sendFile()">Envoyer Fichier</button>
+<div id="loginDiv">
+    <h2>Connexion Admin</h2>
+    <input type="password" id="adminPassword" placeholder="Mot de passe admin" />
+    <button onclick="checkLogin()">Se connecter</button>
+</div>
+
+<div id="mainContent" style="display:none;">
+    <h2>Chat Privé Chiffré</h2>
+    <input type="text" id="key" placeholder="Clé secrète" />
+    <div id="users"></div>
+    <div id="chat"></div>
+    <div id="typing"></div>
+    <input type="text" id="message" placeholder="Votre message (max 200 caractères)" maxlength="200" oninput="updateTyping()" />
+    <input type="file" id="fileInput" />
+    <button onclick="sendMessage()">Envoyer Message</button>
+    <button onclick="sendFile()">Envoyer Fichier</button>
+</div>
 
 <script>
+function checkLogin() {
+    const password = document.getElementById('adminPassword').value;
+    if (password === 'bB26_kazama') {
+        document.getElementById('loginDiv').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        initializeChat();
+    } else {
+        alert('Mot de passe incorrect.');
+    }
+}
+
+function initializeChat() {
   const firebaseConfig = {
     apiKey: "AIzaSyDJdkm0NY3Qs3aFawlMz-wjHjdBR_gxnLs",
     authDomain: "slowfire-2f833.firebaseapp.com",
@@ -136,7 +158,9 @@
     }
   }
 
-  function updateTyping() {
+  window.sendMessage = sendMessage;
+  window.sendFile = sendFile;
+  window.updateTyping = function() {
     typingRef.child(sessionId).set(pseudo);
     setTimeout(() => typingRef.child(sessionId).remove(), 3000);
   }
@@ -176,7 +200,7 @@
     }
   });
 
-  function downloadFile(filePath) {
+  window.downloadFile = function(filePath) {
     storage.ref(filePath).getDownloadURL().then(url => {
       const isImage = url.match(/\.(jpeg|jpg|gif|png)$/);
       const chat = document.getElementById('chat');
@@ -192,11 +216,11 @@
     });
   }
 
-  // Thème automatique jour/nuit
   const hour = new Date().getHours();
   if (hour >= 19 || hour <= 7) {
     document.body.classList.add('dark-mode');
   }
+}
 </script>
 
 </body>
