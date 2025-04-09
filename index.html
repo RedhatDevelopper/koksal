@@ -26,12 +26,12 @@
             padding: 15px; 
             width: 100%; 
             max-width: 600px; 
-            height: 200px; 
+            height: 250px; 
             overflow-y: scroll; 
             margin-bottom: 15px; 
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
         }
-        input, button, #fileInput, #roomInput { 
+        input, button, #fileInput { 
             padding: 12px; 
             margin-top: 8px; 
             width: 100%; 
@@ -64,15 +64,13 @@
 
 <h2>Chat Privé Chiffré</h2>
 <input type="text" id="key" placeholder="Clé secrète" />
-<input type="text" id="roomInput" placeholder="Salon (ex: general)" />
 <div id="users"></div>
 <div id="chat"></div>
-<input type="text" id="message" placeholder="Votre message (max 200 caractères)" maxlength="200" />
+<div id="typing"></div>
+<input type="text" id="message" placeholder="Votre message (max 200 caractères)" maxlength="200" oninput="updateTyping()" />
 <input type="file" id="fileInput" />
 <button onclick="sendMessage()">Envoyer Message</button>
 <button onclick="sendFile()">Envoyer Fichier</button>
-<button onclick="toggleDarkMode()">Mode Sombre</button>
-<audio id="notifySound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
 
 <script>
   const firebaseConfig = {
@@ -91,11 +89,12 @@
   const storage = firebase.storage();
 
   const usersRef = db.ref("/presence");
+  const chatRef = db.ref("/general/messages");
+  const typingRef = db.ref("/general/typing");
 
   let pseudo = "Invité_" + Math.floor(Math.random() * 10000);
   const sessionId = Math.random().toString(36).substring(2);
 
-  // Mise à jour présence utilisateur
   usersRef.child(sessionId).set(pseudo);
   usersRef.child(sessionId).onDisconnect().remove();
 
@@ -107,11 +106,6 @@
     });
   });
 
-  function getChatRef() {
-    const room = document.getElementById('roomInput').value.trim() || "general";
-    return db.ref(`/rooms/${room}/messages`);
-  }
-
   function sendMessage() {
     const key = document.getElementById('key').value.trim();
     const message = document.getElementById('message').value.trim();
@@ -120,8 +114,9 @@
       const dynamicKey = CryptoJS.SHA256(key + Date.now()).toString();
       const encrypted = CryptoJS.AES.encrypt(fullMessage, dynamicKey).toString();
       const timestamp = Date.now();
-      getChatRef().push({ text: encrypted, timestamp: timestamp });
+      chatRef.push({ text: encrypted, timestamp: timestamp });
       document.getElementById('message').value = '';
+      typingRef.child(sessionId).remove();
     }
   }
 
@@ -134,35 +129,33 @@
         const fileData = e.target.result;
         const timestamp = Date.now();
         storage.ref('files/' + timestamp + '_' + file.name).putString(fileData, 'data_url').then(snapshot => {
-          getChatRef().push({ file: snapshot.metadata.fullPath, timestamp: timestamp, sender: pseudo });
+          chatRef.push({ file: snapshot.metadata.fullPath, timestamp: timestamp, sender: pseudo });
         });
       };
       reader.readAsDataURL(file);
     }
   }
 
-  function downloadFile(filePath) {
-    storage.ref(filePath).getDownloadURL().then(url => {
-      const isImage = url.match(/\.(jpeg|jpg|gif|png)$/);
-      const chat = document.getElementById('chat');
-      const p = document.createElement('p');
-      if (isImage) {
-        p.innerHTML = `<img src="${url}" style="max-width:100%;border-radius:8px;"/>`;
-      } else {
-        p.innerHTML = `<a href="${url}" download>Télécharger le fichier</a>`;
-      }
-      chat.appendChild(p);
-      chat.scrollTop = chat.scrollHeight;
-      // Auto-destruction après téléchargement
-      storage.ref(filePath).delete();
-    });
+  function updateTyping() {
+    typingRef.child(sessionId).set(pseudo);
+    setTimeout(() => typingRef.child(sessionId).remove(), 3000);
   }
 
-  getChatRef().on('child_added', snapshot => {
+  typingRef.on('value', snapshot => {
+    const typingDiv = document.getElementById('typing');
+    typingDiv.innerHTML = '';
+    snapshot.forEach(child => {
+      typingDiv.innerHTML += child.val() + ' écrit...<br>';
+    });
+  });
+
+  chatRef.on('child_added', snapshot => {
     const key = document.getElementById('key').value.trim();
     const data = snapshot.val();
     const time = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : '';
     const chat = document.getElementById('chat');
+    const atBottom = chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 10;
+
     const p = document.createElement('p');
 
     if (data.file) {
@@ -178,12 +171,31 @@
     }
 
     chat.appendChild(p);
-    chat.scrollTop = chat.scrollHeight;
-    document.getElementById('notifySound').play();
+    if (atBottom) {
+      chat.scrollTop = chat.scrollHeight;
+    }
   });
 
-  function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
+  function downloadFile(filePath) {
+    storage.ref(filePath).getDownloadURL().then(url => {
+      const isImage = url.match(/\.(jpeg|jpg|gif|png)$/);
+      const chat = document.getElementById('chat');
+      const p = document.createElement('p');
+      if (isImage) {
+        p.innerHTML = `<img src="${url}" style="max-width:100%;border-radius:8px;"/>`;
+      } else {
+        p.innerHTML = `<a href="${url}" download>Télécharger le fichier</a>`;
+      }
+      chat.appendChild(p);
+      chat.scrollTop = chat.scrollHeight;
+      storage.ref(filePath).delete();
+    });
+  }
+
+  // Thème automatique jour/nuit
+  const hour = new Date().getHours();
+  if (hour >= 19 || hour <= 7) {
+    document.body.classList.add('dark-mode');
   }
 </script>
 
