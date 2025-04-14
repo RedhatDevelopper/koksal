@@ -1,7 +1,23 @@
-let deck, playerCards, dealerCards, playerSum, dealerSum, credits = 1000, currentBet = 0;
+let deck, playerCards, dealerCards, playerSum, dealerSum, credits = 0, currentBet = 0;
 const auth = firebase.auth();
 const db = firebase.database();
 const flipSound = document.getElementById('flipSound');
+
+// 🔥 Charger les crédits en live depuis Firebase au début
+auth.onAuthStateChanged(user => {
+  if (user) {
+    db.ref('users/' + user.uid + '/credits').once('value').then(snapshot => {
+      if (snapshot.exists()) {
+        credits = snapshot.val();
+        document.getElementById('credits').textContent = credits;
+      } else {
+        // Aucun crédit trouvé → initialiser à 1000
+        credits = 1000;
+        db.ref('users/' + user.uid).set({ credits: credits });
+      }
+    });
+  }
+});
 
 function createDeck() {
     const types = ['H', 'D', 'C', 'S'];
@@ -31,13 +47,13 @@ function getValue(card) {
 
 function startGame() {
     let bet = parseInt(document.getElementById('bet').value);
-    if (bet <= 0 || bet > credits) {
+    if (isNaN(bet) || bet <= 0 || bet > credits) {
         alert('Mise invalide.');
         return;
     }
     currentBet = bet;
     credits -= bet;
-    updateCredits(credits); // 🔥 Update Firebase après la mise
+    updateCredits(credits); // 🔥 Mise à jour Firebase
     document.getElementById('credits').textContent = credits;
 
     deck = createDeck();
@@ -113,8 +129,7 @@ function endGame(result) {
     } else if (result === 'Égalité') {
         credits += currentBet;
     }
-    // 🔥 Mettre à jour les crédits après la partie
-    updateCredits(credits);
+    updateCredits(credits); // 🔥 Mise à jour Firebase
     document.getElementById('credits').textContent = credits;
 }
 
