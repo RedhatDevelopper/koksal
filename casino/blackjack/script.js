@@ -1,4 +1,6 @@
 let deck, playerCards, dealerCards, playerSum, dealerSum, credits = 1000, currentBet = 0;
+const auth = firebase.auth();
+const db = firebase.database();
 const flipSound = document.getElementById('flipSound');
 
 function createDeck() {
@@ -35,6 +37,7 @@ function startGame() {
     }
     currentBet = bet;
     credits -= bet;
+    updateCredits(credits); // 🔥 Update Firebase après la mise
     document.getElementById('credits').textContent = credits;
 
     deck = createDeck();
@@ -105,7 +108,21 @@ function calculateSum(cards) {
 
 function endGame(result) {
     document.getElementById('result').textContent = result;
-    if (result === 'Gagné') credits += currentBet * 2;
-    else if (result === 'Égalité') credits += currentBet;
+    if (result === 'Gagné') {
+        credits += currentBet * 2;
+    } else if (result === 'Égalité') {
+        credits += currentBet;
+    }
+    // 🔥 Mettre à jour les crédits après la partie
+    updateCredits(credits);
     document.getElementById('credits').textContent = credits;
+}
+
+function updateCredits(newCredits) {
+    const user = auth.currentUser;
+    if (user) {
+        db.ref('users/' + user.uid).update({
+            credits: newCredits
+        });
+    }
 }
