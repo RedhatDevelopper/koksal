@@ -4,29 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Roulette</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>🎡 Roulette</h1>
+<h1>🎰 Roulette</h1>
 
-<div id="credits">Crédits : 0</div>
+<div id="credits">Crédits : 500</div>
 
-<select id="betType">
-  <option value="red">Rouge</option>
-  <option value="black">Noir</option>
-  <option value="even">Pair</option>
-  <option value="odd">Impair</option>
-  <option value="number">Numéro précis</option>
-</select>
+<div class="roulette-container">
+  <select id="betColor">
+    <option value="noir">Noir</option>
+    <option value="rouge">Rouge</option>
+    <option value="vert">Vert (0)</option>
+  </select>
+  <input type="number" id="betAmount" placeholder="Mise" min="1">
+  <button onclick="spinRoulette()">Lancer la Roulette</button>
+</div>
 
-<input type="text" id="betValue" placeholder="Valeur du pari (ex: 17 pour numéro)">
-<button onclick="spinWheel()">Lancer la Roulette</button>
-
-<div id="result"></div>
+<h2 id="result"></h2>
 
 <script src="script.js"></script>
 
