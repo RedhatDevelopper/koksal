@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blackjack Visuel + Crédits</title>
+  <title>Blackjack avec Crédits</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -21,19 +21,19 @@
   <div class="hand" id="dealerHand">
     <h2>Croupier</h2>
     <div class="cards" id="dealerCards"></div>
-    <div id="dealerScore"></div>
+    <div id="dealerScore"></div> <!-- ✅ SCORE CROUPIER -->
   </div>
 
   <div class="hand" id="playerHand">
     <h2>Joueur</h2>
     <div class="cards" id="playerCards"></div>
-    <div id="playerScore"></div>
+    <div id="playerScore"></div> <!-- ✅ SCORE JOUEUR -->
   </div>
 
   <div class="controls">
     <button onclick="hit()" id="hitBtn" disabled>Tirer</button>
     <button onclick="stand()" id="standBtn" disabled>Rester</button>
-    <button onclick="restartGame()">Nouvelle Partie</button>
+    <button onclick="restartGame()">Nouvelle Partie</button> <!-- ✅ Bien écrit -->
   </div>
 
   <h2 id="message"></h2>
