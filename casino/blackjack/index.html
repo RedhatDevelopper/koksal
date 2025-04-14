@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack Casino</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Blackjack 🃏</h1>
+        <p>Crédits : <span id="credits">1000</span></p>
+        <div id="player">Joueur: <span id="playerCards"></span> (<span id="playerSum">0</span>)</div>
+        <div id="dealer">Banque: <span id="dealerCards"></span> (<span id="dealerSum">0</span>)</div>
+        <input type="number" id="bet" placeholder="Votre mise" />
+        <button onclick="startGame()">Miser et Commencer</button>
+        <button onclick="hit()">Tirer</button>
+        <button onclick="stand()">Rester</button>
+        <p id="result"></p>
+        <audio id="flipSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
