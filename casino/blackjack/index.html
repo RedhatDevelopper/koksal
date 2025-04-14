@@ -3,31 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blackjack</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <title>Blackjack Visuel</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>🃏 Blackjack</h1>
+<h1>🃏 Blackjack Classique</h1>
 
-<div id="credits">Crédits : 0</div>
+<div class="game">
+  <div class="hand" id="dealerHand">
+    <h2>Croupier</h2>
+    <div class="cards" id="dealerCards"></div>
+    <div id="dealerScore"></div>
+  </div>
 
-<input type="number" id="bet" placeholder="Votre mise" min="1">
-<button onclick="startGame()">Commencer</button>
+  <div class="hand" id="playerHand">
+    <h2>Joueur</h2>
+    <div class="cards" id="playerCards"></div>
+    <div id="playerScore"></div>
+  </div>
 
-<div id="playerCards"></div>
-<div id="dealerCards"></div>
+  <div class="controls">
+    <button onclick="hit()">Tirer</button>
+    <button onclick="stand()">Rester</button>
+    <button onclick="restartGame()">Nouvelle Partie</button>
+  </div>
 
-<div id="playerSum"></div>
-<div id="dealerSum"></div>
-
-<button onclick="hit()">Tirer une carte</button>
-<button onclick="stand()">Rester</button>
-
-<div id="result"></div>
+  <h2 id="message"></h2>
+</div>
 
 <script src="script.js"></script>
 
