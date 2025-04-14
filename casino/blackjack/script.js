@@ -2,6 +2,8 @@ let deck = [];
 let playerCards = [];
 let dealerCards = [];
 let gameOver = false;
+let credits = 500;
+let currentBet = 0;
 
 function createDeck() {
   const types = ['♠️', '♥️', '♣️', '♦️'];
@@ -22,11 +24,25 @@ function shuffleDeck() {
 }
 
 function startGame() {
+  const bet = parseInt(document.getElementById('betInput').value);
+  if (isNaN(bet) || bet <= 0 || bet > credits) {
+    alert("Mise invalide !");
+    return;
+  }
+  currentBet = bet;
+  credits -= currentBet;
+  updateCredits();
+
   createDeck();
   shuffleDeck();
   playerCards = [drawCard(), drawCard()];
   dealerCards = [drawCard(), drawCard()];
   gameOver = false;
+  document.getElementById('message').innerText = '';
+
+  document.getElementById('hitBtn').disabled = false;
+  document.getElementById('standBtn').disabled = false;
+
   updateDisplay();
 }
 
@@ -95,22 +111,35 @@ function endGame() {
   let message = '';
 
   if (playerScore > 21) {
-    message = "Vous avez perdu 😢";
+    message = "💥 Vous avez perdu !";
   } else if (dealerScore > 21 || playerScore > dealerScore) {
-    message = "Vous avez gagné 🎉";
+    message = "🎉 Vous avez gagné !";
+    credits += currentBet * 2;
   } else if (playerScore < dealerScore) {
-    message = "Vous avez perdu 😢";
+    message = "💥 Vous avez perdu !";
   } else {
-    message = "Égalité 🤝";
+    message = "🤝 Égalité !";
+    credits += currentBet;
   }
 
+  updateCredits();
   document.getElementById('message').innerText = message;
+  document.getElementById('hitBtn').disabled = true;
+  document.getElementById('standBtn').disabled = true;
   updateDisplay();
 }
 
 function restartGame() {
-  startGame();
+  document.getElementById('betInput').value = '';
+  playerCards = [];
+  dealerCards = [];
+  document.getElementById('playerCards').innerHTML = '';
+  document.getElementById('dealerCards').innerHTML = '';
+  document.getElementById('playerScore').innerText = '';
+  document.getElementById('dealerScore').innerText = '';
   document.getElementById('message').innerText = '';
 }
 
-startGame();
+function updateCredits() {
+  document.getElementById('credits').innerText = `Crédits : ${credits}`;
+}
