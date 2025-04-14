@@ -6,6 +6,31 @@ body {
   padding: 20px;
 }
 
+#credits {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.bet-section {
+  margin-bottom: 20px;
+}
+
+.bet-section input {
+  padding: 10px;
+  font-size: 16px;
+  width: 120px;
+}
+
+.bet-section button {
+  padding: 10px 20px;
+  margin-left: 10px;
+  background-color: #e67e22;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
 .game {
   max-width: 800px;
   margin: 0 auto;
