@@ -23,6 +23,7 @@
 <button onclick="login()">Se connecter</button>
 
 <script>
+// Configuration Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDJdkm0NY3Qs3aFawlMz-wjHjdBR_gxnLs",
   authDomain: "slowfire-2f833.firebaseapp.com",
@@ -41,7 +42,7 @@ function register() {
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
   auth.createUserWithEmailAndPassword(email, password)
-    .then(() => { alert('Inscription réussie, veuillez vous connecter.'); })
+    .then(() => { alert('Inscription réussie, connectez-vous.'); })
     .catch(error => { alert(error.message); });
 }
 
@@ -59,15 +60,13 @@ function login() {
 function checkPseudo(uid) {
   db.ref('users/' + uid + '/pseudo').once('value', snapshot => {
     if (snapshot.exists()) {
-      // Pseudo déjà enregistré, redirection vers le casino
       window.location.href = '/casino/index.html';
     } else {
-      // Demander un pseudo
       const pseudo = prompt("Choisissez un pseudo pour le casino:");
       if (pseudo && pseudo.trim() !== "") {
         db.ref('users/' + uid).set({
           pseudo: pseudo,
-          credits: 1000 // Crédit de départ
+          credits: 1000
         }).then(() => {
           alert("Pseudo enregistré !");
           window.location.href = '/casino/index.html';
