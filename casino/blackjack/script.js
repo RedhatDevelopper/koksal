@@ -1,103 +1,52 @@
-let deck, playerCards, dealerCards, playerSum, dealerSum, credits = 0, currentBet = 0;
-const auth = firebase.auth();
-const db = firebase.database();
-const flipSound = document.getElementById('flipSound');
-
-auth.onAuthStateChanged(user => {
-  if (user) {
-    db.ref('users/' + user.uid + '/credits').once('value').then(snapshot => {
-      if (snapshot.exists()) {
-        credits = snapshot.val();
-        document.getElementById('credits').textContent = credits;
-      }
-    });
-  }
-});
+let deck = [];
+let playerCards = [];
+let dealerCards = [];
+let gameOver = false;
 
 function createDeck() {
-  const types = ['H', 'D', 'C', 'S'];
+  const types = ['♠️', '♥️', '♣️', '♦️'];
   const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-  let newDeck = [];
-  types.forEach(type => values.forEach(value => newDeck.push(value + type)));
-  return newDeck;
+  deck = [];
+  for (let type of types) {
+    for (let value of values) {
+      deck.push({ value, type });
+    }
+  }
 }
 
-function shuffle(deck) {
+function shuffleDeck() {
   for (let i = deck.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [deck[i], deck[j]] = [deck[j], deck[i]];
   }
 }
 
-function getValue(card) {
-  const value = card.slice(0, -1);
-  if (['J', 'Q', 'K'].includes(value)) return 10;
-  if (value === 'A') return 11;
-  return parseInt(value);
-}
-
 function startGame() {
-  let bet = parseInt(document.getElementById('bet').value);
-  if (isNaN(bet) || bet <= 0 || bet > credits) {
-    alert('Mise invalide.');
-    return;
+  createDeck();
+  shuffleDeck();
+  playerCards = [drawCard(), drawCard()];
+  dealerCards = [drawCard(), drawCard()];
+  gameOver = false;
+  updateDisplay();
+}
+
+function drawCard() {
+  return deck.pop();
+}
+
+function getScore(cards) {
+  let sum = 0;
+  let aces = 0;
+  for (let card of cards) {
+    if (['J', 'Q', 'K'].includes(card.value)) {
+      sum += 10;
+    } else if (card.value === 'A') {
+      sum += 11;
+      aces++;
+    } else {
+      sum += parseInt(card.value);
+    }
   }
-  currentBet = bet;
-  credits -= bet;
-  updateCredits(credits);
-  document.getElementById('credits').textContent = credits;
-
-  deck = createDeck();
-  shuffle(deck);
-  playerCards = [deck.pop(), deck.pop()];
-  dealerCards = [deck.pop(), deck.pop()];
-
-  flipSound.play();
-  flipSound.play();
-
-  render();
-}
-
-function render() {
-  playerSum = calculateSum(playerCards);
-  dealerSum = calculateSum([dealerCards[0]]);
-
-  document.getElementById('playerCards').textContent = playerCards.join(' ');
-  document.getElementById('dealerCards').textContent = dealerCards[0] + ' ?';
-  document.getElementById('playerSum').textContent = playerSum;
-  document.getElementById('dealerSum').textContent = '?';
-}
-
-function hit() {
-  playerCards.push(deck.pop());
-  flipSound.play();
-  playerSum = calculateSum(playerCards);
-  document.getElementById('playerCards').textContent = playerCards.join(' ');
-  document.getElementById('playerSum').textContent = playerSum;
-  if (playerSum > 21) endGame('Perdu');
-}
-
-function stand() {
-  while (calculateSum(dealerCards) < 17) {
-    dealerCards.push(deck.pop());
-    flipSound.play();
-  }
-  dealerSum = calculateSum(dealerCards);
-  document.getElementById('dealerCards').textContent = dealerCards.join(' ');
-  document.getElementById('dealerSum').textContent = dealerSum;
-
-  if (dealerSum > 21 || playerSum > dealerSum) endGame('Gagné');
-  else if (playerSum < dealerSum) endGame('Perdu');
-  else endGame('Égalité');
-}
-
-function calculateSum(cards) {
-  let sum = 0, aces = 0;
-  cards.forEach(card => {
-    let val = getValue(card);
-    if (val === 11) aces++;
-    sum += val;
-  });
   while (sum > 21 && aces > 0) {
     sum -= 10;
     aces--;
@@ -105,17 +54,63 @@ function calculateSum(cards) {
   return sum;
 }
 
-function endGame(result) {
-  document.getElementById('result').textContent = result;
-  if (result === 'Gagné') credits += currentBet * 2;
-  else if (result === 'Égalité') credits += currentBet;
-  updateCredits(credits);
-  document.getElementById('credits').textContent = credits;
+function updateDisplay() {
+  const playerDiv = document.getElementById('playerCards');
+  const dealerDiv = document.getElementById('dealerCards');
+  playerDiv.innerHTML = '';
+  dealerDiv.innerHTML = '';
+
+  for (let card of playerCards) {
+    playerDiv.innerHTML += `<div class="card">${card.value}<br>${card.type}</div>`;
+  }
+  for (let card of dealerCards) {
+    dealerDiv.innerHTML += `<div class="card">${card.value}<br>${card.type}</div>`;
+  }
+
+  document.getElementById('playerScore').innerText = `Score : ${getScore(playerCards)}`;
+  document.getElementById('dealerScore').innerText = gameOver ? `Score : ${getScore(dealerCards)}` : 'Score : ?';
 }
 
-function updateCredits(newCredits) {
-  const user = auth.currentUser;
-  if (user) {
-    db.ref('users/' + user.uid).update({ credits: newCredits });
+function hit() {
+  if (gameOver) return;
+  playerCards.push(drawCard());
+  if (getScore(playerCards) > 21) {
+    endGame();
   }
+  updateDisplay();
 }
+
+function stand() {
+  if (gameOver) return;
+  while (getScore(dealerCards) < 17) {
+    dealerCards.push(drawCard());
+  }
+  endGame();
+}
+
+function endGame() {
+  gameOver = true;
+  const playerScore = getScore(playerCards);
+  const dealerScore = getScore(dealerCards);
+  let message = '';
+
+  if (playerScore > 21) {
+    message = "Vous avez perdu 😢";
+  } else if (dealerScore > 21 || playerScore > dealerScore) {
+    message = "Vous avez gagné 🎉";
+  } else if (playerScore < dealerScore) {
+    message = "Vous avez perdu 😢";
+  } else {
+    message = "Égalité 🤝";
+  }
+
+  document.getElementById('message').innerText = message;
+  updateDisplay();
+}
+
+function restartGame() {
+  startGame();
+  document.getElementById('message').innerText = '';
+}
+
+startGame();
