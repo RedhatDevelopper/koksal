@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roulette Casino</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Roulette 🎡</h1>
+        <div class="wheel" id="wheel"></div>
+        <div class="controls">
+            <select id="betType">
+                <option value="number">Numéro</option>
+                <option value="red">Rouge</option>
+                <option value="black">Noir</option>
+                <option value="even">Pair</option>
+                <option value="odd">Impair</option>
+            </select>
+            <input type="text" id="betValue" placeholder="Votre pari (ex: 7)">
+            <button onclick="spinWheel()">Lancer la roue</button>
+            <button onclick="resetGame()">Rejouer</button>
+            <p id="result"></p>
+            <p>Crédits : <span id="credits">1000</span></p>
+        </div>
+    </div>
+    <audio id="tickSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+    <script src="script.js"></script>
+</body>
+</html>
