@@ -3,12 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blackjack Visuel</title>
+  <title>Blackjack Visuel + Crédits</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>🃏 Blackjack Classique</h1>
+<h1>🃏 Blackjack avec Crédits</h1>
+
+<div id="credits">Crédits : 500</div>
+
+<div class="bet-section">
+  <input type="number" id="betInput" placeholder="Votre mise" min="1">
+  <button onclick="startGame()">Miser et Jouer</button>
+</div>
 
 <div class="game">
   <div class="hand" id="dealerHand">
@@ -24,8 +31,8 @@
   </div>
 
   <div class="controls">
-    <button onclick="hit()">Tirer</button>
-    <button onclick="stand()">Rester</button>
+    <button onclick="hit()" id="hitBtn" disabled>Tirer</button>
+    <button onclick="stand()" id="standBtn" disabled>Rester</button>
     <button onclick="restartGame()">Nouvelle Partie</button>
   </div>
 
