@@ -1,0 +1,51 @@
+<head>
+  <meta charset="UTF-8" />
+  <title>Inscription Parent</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    firebase.initializeApp(firebaseConfig);
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const db = firebase.database();
+      const form = document.getElementById("register-form");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const nom = document.getElementById("nom").value.trim();
+        const pseudo = document.getElementById("pseudo").value.trim().toLowerCase().replace(/\./g, "_");
+        const mot_de_passe = document.getElementById("password").value;
+
+        const ref = db.ref(`parents/${pseudo}`);
+        const snap = await ref.get();
+
+        if (snap.exists()) {
+          alert("Ce pseudo est déjà utilisé.");
+          return;
+        }
+
+        await ref.set({
+          nom,
+          pseudo,
+          mot_de_passe
+        });
+
+        localStorage.setItem("role", "parent");
+        localStorage.setItem("pseudo", pseudo);
+        window.location.href = "dashboard_parent.html";
+      });
+    });
+  </script>
+</head>
+<body>
+  <h1>Inscription parent</h1>
+  <form id="register-form">
+    <input type="text" id="nom" placeholder="Votre nom" required />
+    <input type="text" id="pseudo" placeholder="Pseudo" required />
+    <input type="password" id="password" placeholder="Mot de passe" required />
+    <button type="submit">Créer le compte</button>
+  </form>
+</body>
+</html>
