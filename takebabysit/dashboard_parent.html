@@ -56,11 +56,13 @@
         e.preventDefault();
         const date = document.getElementById("resa-date").value;
         const message = document.getElementById("resa-message").value;
+        const email = document.getElementById("resa-email").value;
 
         await db.ref("reservations").push({
           nom: pseudo,
           date,
           message,
+          email,
           statut: "en_attente"
         });
 
@@ -78,6 +80,7 @@
     <form id="resa-form" style="display:none; margin-top: 20px;">
       <input type="date" id="resa-date" required />
       <textarea id="resa-message" placeholder="Message ou détails..." rows="3"></textarea>
+      <input type="email" id="resa-email" placeholder="Votre email" required />
       <button type="submit" class="btn">Envoyer</button>
     </form>
   </div>
