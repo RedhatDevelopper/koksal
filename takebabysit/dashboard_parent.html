@@ -21,7 +21,6 @@
 
       const container = document.getElementById("reservations");
 
-      // Afficher les réservations de ce parent uniquement
       const snapshot = await db.ref("reservations").get();
       if (snapshot.exists()) {
         const all = snapshot.val();
@@ -48,12 +47,42 @@
       } else {
         container.innerHTML = "<p>Aucune réservation enregistrée.</p>";
       }
+
+      document.getElementById("new-resa-btn").addEventListener("click", () => {
+        document.getElementById("resa-form").style.display = "block";
+      });
+
+      document.getElementById("resa-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const date = document.getElementById("resa-date").value;
+        const message = document.getElementById("resa-message").value;
+
+        await db.ref("reservations").push({
+          nom: pseudo,
+          date,
+          message,
+          statut: "en_attente"
+        });
+
+        alert("Réservation ajoutée !");
+        location.reload();
+      });
     });
   </script>
 </head>
 <body>
   <h1>Bienvenue, parent 👨‍👩‍👧‍👦</h1>
-  <div id="reservations" class="container">
+
+  <div class="container">
+    <button id="new-resa-btn" class="btn">➕ Nouvelle Réservation</button>
+    <form id="resa-form" style="display:none; margin-top: 20px;">
+      <input type="date" id="resa-date" required />
+      <textarea id="resa-message" placeholder="Message ou détails..." rows="3"></textarea>
+      <button type="submit" class="btn">Envoyer</button>
+    </form>
+  </div>
+
+  <div id="reservations" class="container" style="margin-top: 30px;">
     <p>Chargement de vos réservations...</p>
   </div>
 </body>
