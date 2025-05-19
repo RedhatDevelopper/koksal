@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Réservation</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    firebase.initializeApp(firebaseConfig);
+    window.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("resa-form");
+      const db = firebase.database();
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const nom = document.getElementById("nom").value;
+        const date = document.getElementById("date").value;
+        const msg = document.getElementById("message").value;
+
+        await db.ref("reservations").push({ nom, date, message: msg });
+        form.reset();
+        alert("Réservation envoyée !");
+      });
+    });
+  </script>
+</head>
+<body>
+  <h1>Réserver une garde</h1>
+  <form id="resa-form">
+    <input type="text" id="nom" placeholder="Nom" required />
+    <input type="date" id="date" required />
+    <textarea id="message" placeholder="Infos utiles"></textarea>
+    <button type="submit">Envoyer</button>
+  </form>
+</body>
+</html>

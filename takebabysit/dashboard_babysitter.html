@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Babysitter</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    firebase.initializeApp(firebaseConfig);
+    window.addEventListener("DOMContentLoaded", async () => {
+      const pseudo = localStorage.getItem("pseudo");
+      if (!pseudo) return document.body.innerHTML = "Non connecté.";
+      const db = firebase.database();
+      const ref = db.ref(`planning/${pseudo}`);
+      const snap = await ref.get();
+      const div = document.getElementById("planning");
+      if (snap.exists()) {
+        Object.values(snap.val()).forEach(p => {
+          const el = document.createElement("p");
+          el.textContent = `${p.date_debut} → ${p.date_fin}`;
+          div.appendChild(el);
+        });
+      } else {
+        div.innerHTML = "<p>Aucune garde prévue.</p>";
+      }
+    });
+  </script>
+</head>
+<body>
+  <h1>Mon planning</h1>
+  <div id="planning"></div>
+</body>
+</html>
